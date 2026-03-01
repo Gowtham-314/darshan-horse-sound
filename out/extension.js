@@ -76,38 +76,50 @@ function activate(context) {
         }
         previousErrorCount = errorCount;
     }));
-    // ── Terminal Watcher — Method 1: Shell Integration (VS Code 1.93+) ────────
-    // Fires when any terminal command finishes — non-zero exit code = error
-    if ('onDidEndTerminalShellExecution' in vscode.window) {
+    // ── Terminal Watcher — Layer 1: Shell Exit Codes (VS Code 1.93+) ─────────
+    // Best method: catches ANY command that exits with non-zero (errors, crashes)
+    try {
         context.subscriptions.push(vscode.window.onDidEndTerminalShellExecution((event) => {
             const cfg = getConfig();
             if (!cfg.enabled || !cfg.watchTerminal) {
                 return;
             }
-            // Any non-zero exit code means the command failed
             if (event.exitCode !== undefined && event.exitCode !== 0) {
-                playSound(`🔴 Terminal command failed (exit code ${event.exitCode})`);
+                playSound(`Terminal: command failed (exit code ${event.exitCode})`);
             }
         }));
     }
-    // ── Terminal Watcher — Method 2: Data stream keywords (VS Code 1.70+) ───
-    // Fallback: scan raw terminal output for error keywords
-    if ('onDidWriteTerminalData' in vscode.window) {
+    catch (_) { /* API not available */ }
+    // ── Terminal Watcher — Layer 2: Global data stream (VS Code 1.70+) ───────
+    // Catches keyword matches across ALL terminals at once
+    try {
         context.subscriptions.push(vscode.window.onDidWriteTerminalData((event) => {
             const cfg = getConfig();
             if (!cfg.enabled || !cfg.watchTerminal) {
                 return;
             }
-            // Strip ANSI escape codes then lowercase
-            const data = event.data
-                .replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '')
-                .toLowerCase();
-            const matched = cfg.terminalKeywords.some(kw => data.includes(kw));
-            if (matched) {
-                playSound('🔴 Error keyword detected in terminal');
-            }
+            checkTerminalData(event.data, cfg.terminalKeywords);
         }));
     }
+    catch (_) { /* API not available */ }
+    // ── Terminal Watcher — Layer 3: Per-terminal listeners ───────────────────
+    // Registers on each terminal individually — covers edge cases
+    const registerTerminal = (terminal) => {
+        try {
+            terminal.onDidWriteData?.((data) => {
+                const cfg = getConfig();
+                if (!cfg.enabled || !cfg.watchTerminal) {
+                    return;
+                }
+                checkTerminalData(data, cfg.terminalKeywords);
+            });
+        }
+        catch (_) { /* API not available */ }
+    };
+    // Register on all already-open terminals
+    vscode.window.terminals.forEach(registerTerminal);
+    // Register on every new terminal opened
+    context.subscriptions.push(vscode.window.onDidOpenTerminal(registerTerminal));
     vscode.window.showInformationMessage('🔊 Error Sound Alert is active! Click the status bar bell to toggle.');
 }
 // ── Commands ───────────────────────────────────────────────────────────────
@@ -123,6 +135,14 @@ function cmdToggle() {
 function cmdTest() {
     vscode.window.showInformationMessage('🔊 Error Sound Alert: Playing test sound...');
     playSound('Test sound', true /* force */);
+}
+// ── Terminal Data Helper ───────────────────────────────────────────────────
+function checkTerminalData(raw, keywords) {
+    // Strip ANSI escape codes then lowercase for clean matching
+    const data = raw.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '').toLowerCase();
+    if (keywords.some(kw => data.includes(kw))) {
+        playSound('🔴 Error detected in terminal output');
+    }
 }
 // ── Sound Playback ─────────────────────────────────────────────────────────
 function playSound(reason, force = false) {

@@ -1,107 +1,119 @@
 {
-  "name": "enri-media-sound-alert",
-  "displayName": "Enri-Media Sound Alert",
-  "description": "Enri-Media: Plays a custom sound when errors occur in VS Code — editor diagnostics, terminal, or PowerShell",
-  "version": "1.0.1",
-  "publisher": "GowthamGowdaCB",
-  "icon": "media/icon.png",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Gowtham-314/darshan-horse-sound"
-  },
-  "engines": {
-    "vscode": "^1.75.0"
-  },
-  "categories": [
-    "Other"
-  ],
-
-  "keywords": [
-    "error",
-    "sound",
-    "alert",
-    "terminal",
-    "diagnostics"
-  ],
-  "activationEvents": [
-    "onStartupFinished"
-  ],
-  "main": "./out/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "errorSoundAlert.toggle",
-        "title": "Error Sound Alert: Toggle On/Off"
-      },
-      {
-        "command": "errorSoundAlert.test",
-        "title": "Error Sound Alert: Test Sound 🔊"
-      }
-    ],
-    "configuration": {
-      "title": "Error Sound Alert",
-      "properties": {
-        "errorSoundAlert.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable or disable error sound alerts globally."
-        },
-        "errorSoundAlert.watchDiagnostics": {
-          "type": "boolean",
-          "default": true,
-          "description": "Watch the Problems panel (editor diagnostics) for new errors."
-        },
-        "errorSoundAlert.watchTerminal": {
-          "type": "boolean",
-          "default": true,
-          "description": "Watch terminal / PowerShell output for error keywords."
-        },
-        "errorSoundAlert.cooldownMs": {
-          "type": "number",
-          "default": 2000,
-          "description": "Minimum milliseconds between two consecutive sound plays (prevents spam)."
-        },
-        "errorSoundAlert.terminalKeywords": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [
-            "error:",
-            "fatal error",
-            "fatal:",
-            "exception:",
-            "traceback",
-            "syntaxerror",
-            "typeerror",
-            "referenceerror",
-            "nameerror",
-            "valueerror",
-            "indexerror",
-            "attributeerror",
-            "err!",
-            " failed",
-            "build failed",
-            "cannot find",
-            "could not",
-            "module not found",
-            "unable to",
-            "unhandled",
-            "rejected"
-          ],
-          "description": "List of lowercase keywords that trigger the sound when found in terminal output."
-        }
-      }
-    }
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
-  },
-  "devDependencies": {
-    "@types/vscode": "^1.75.0",
-    "@types/node": "^18.0.0",
-    "typescript": "^5.0.0"
-  }
+    "name":  "enri-media-sound-alert",
+    "displayName":  "Enri-Media Sound Alert",
+    "description":  "Enri-Media: Plays a custom sound when errors occur in VS Code — editor diagnostics, terminal, or PowerShell",
+    "version":  "1.0.2",
+    "publisher":  "GowthamGowdaCB",
+    "icon":  "media/icon.png",
+    "repository":  {
+                       "type":  "git",
+                       "url":  "https://github.com/Gowtham-314/darshan-horse-sound"
+                   },
+    "engines":  {
+                    "vscode":  "^1.75.0"
+                },
+    "categories":  [
+                       "Other"
+                   ],
+    "keywords":  [
+                     "error",
+                     "sound",
+                     "alert",
+                     "terminal",
+                     "diagnostics"
+                 ],
+    "activationEvents":  [
+                             "onStartupFinished"
+                         ],
+    "main":  "./out/extension.js",
+    "contributes":  {
+                        "commands":  [
+                                         {
+                                             "command":  "errorSoundAlert.toggle",
+                                             "title":  "Error Sound Alert: Toggle On/Off"
+                                         },
+                                         {
+                                             "command":  "errorSoundAlert.test",
+                                             "title":  "Error Sound Alert: Test Sound 🔊"
+                                         }
+                                     ],
+                        "configuration":  {
+                                              "title":  "Error Sound Alert",
+                                              "properties":  {
+                                                                 "errorSoundAlert.enabled":  {
+                                                                                                 "type":  "boolean",
+                                                                                                 "default":  true,
+                                                                                                 "description":  "Enable or disable error sound alerts globally."
+                                                                                             },
+                                                                 "errorSoundAlert.watchDiagnostics":  {
+                                                                                                          "type":  "boolean",
+                                                                                                          "default":  false,
+                                                                                                          "description":  "Watch the Problems panel (editor diagnostics) for new errors. Disabled by default to avoid sound while typing."
+                                                                                                      },
+                                                                 "errorSoundAlert.watchTerminal":  {
+                                                                                                       "type":  "boolean",
+                                                                                                       "default":  true,
+                                                                                                       "description":  "Watch terminal / PowerShell output for error keywords."
+                                                                                                   },
+                                                                 "errorSoundAlert.cooldownMs":  {
+                                                                                                    "type":  "number",
+                                                                                                    "default":  2000,
+                                                                                                    "description":  "Minimum milliseconds between two consecutive sound plays (prevents spam)."
+                                                                                                },
+                                                                 "errorSoundAlert.terminalKeywords":  {
+                                                                                                          "type":  "array",
+                                                                                                          "items":  {
+                                                                                                                        "type":  "string"
+                                                                                                                    },
+                                                                                                          "default":  [
+                                                                                                                          "error:",
+                                                                                                                          "fatal error",
+                                                                                                                          "fatal:",
+                                                                                                                          "exception:",
+                                                                                                                          "traceback",
+                                                                                                                          "syntaxerror",
+                                                                                                                          "typeerror",
+                                                                                                                          "referenceerror",
+                                                                                                                          "nameerror",
+                                                                                                                          "valueerror",
+                                                                                                                          "indexerror",
+                                                                                                                          "attributeerror",
+                                                                                                                          "zerodivisionerror",
+                                                                                                                          "runtimeerror",
+                                                                                                                          "keyerror",
+                                                                                                                          "oserror",
+                                                                                                                          "filenotfounderror",
+                                                                                                                          "permissionerror",
+                                                                                                                          "importerror",
+                                                                                                                          "modulenotfounderror",
+                                                                                                                          "assertionerror",
+                                                                                                                          "overflowerror",
+                                                                                                                          "recursionerror",
+                                                                                                                          "err!",
+                                                                                                                          " failed",
+                                                                                                                          "build failed",
+                                                                                                                          "cannot find",
+                                                                                                                          "could not",
+                                                                                                                          "module not found",
+                                                                                                                          "unable to",
+                                                                                                                          "unhandled",
+                                                                                                                          "rejected",
+                                                                                                                          "command failed",
+                                                                                                                          "exit code"
+                                                                                                                      ],
+                                                                                                          "description":  "List of lowercase keywords that trigger the sound when found in terminal output."
+                                                                                                      }
+                                                             }
+                                          }
+                    },
+    "scripts":  {
+                    "vscode:prepublish":  "npm run compile",
+                    "compile":  "tsc -p ./",
+                    "watch":  "tsc -watch -p ./"
+                },
+    "devDependencies":  {
+                            "@types/vscode":  "^1.75.0",
+                            "@types/node":  "^18.0.0",
+                            "typescript":  "^5.0.0"
+                        }
 }
