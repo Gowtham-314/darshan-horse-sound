@@ -76,20 +76,35 @@ function activate(context) {
         }
         previousErrorCount = errorCount;
     }));
-    // ── Terminal / PowerShell Output Watcher ───────────────────────────────
-    // onDidWriteTerminalData is stable in VS Code 1.70+
+    // ── Terminal Watcher — Method 1: Shell Integration (VS Code 1.93+) ────────
+    // Fires when any terminal command finishes — non-zero exit code = error
+    if ('onDidEndTerminalShellExecution' in vscode.window) {
+        context.subscriptions.push(vscode.window.onDidEndTerminalShellExecution((event) => {
+            const cfg = getConfig();
+            if (!cfg.enabled || !cfg.watchTerminal) {
+                return;
+            }
+            // Any non-zero exit code means the command failed
+            if (event.exitCode !== undefined && event.exitCode !== 0) {
+                playSound(`🔴 Terminal command failed (exit code ${event.exitCode})`);
+            }
+        }));
+    }
+    // ── Terminal Watcher — Method 2: Data stream keywords (VS Code 1.70+) ───
+    // Fallback: scan raw terminal output for error keywords
     if ('onDidWriteTerminalData' in vscode.window) {
         context.subscriptions.push(vscode.window.onDidWriteTerminalData((event) => {
             const cfg = getConfig();
             if (!cfg.enabled || !cfg.watchTerminal) {
                 return;
             }
-            const raw = event.data.toLowerCase();
-            // Strip ANSI escape codes for cleaner matching
-            const data = raw.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
+            // Strip ANSI escape codes then lowercase
+            const data = event.data
+                .replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '')
+                .toLowerCase();
             const matched = cfg.terminalKeywords.some(kw => data.includes(kw));
             if (matched) {
-                playSound('🔴 Error detected in terminal');
+                playSound('🔴 Error keyword detected in terminal');
             }
         }));
     }
