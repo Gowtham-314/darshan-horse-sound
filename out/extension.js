@@ -41,6 +41,7 @@ const cp = __importStar(require("child_process"));
 const fs = __importStar(require("fs"));
 // ── State ──────────────────────────────────────────────────────────────────
 let statusBarItem;
+let outputChannel;
 let lastSoundTime = 0;
 let soundFilePath = '';
 // ── Activate ───────────────────────────────────────────────────────────────
@@ -49,6 +50,10 @@ function activate(context) {
     if (!fs.existsSync(soundFilePath)) {
         vscode.window.showWarningMessage('⚠️ Enri-Media Sound Alert: sound.mp3 not found in extension media folder.');
     }
+    // Output channel for debugging (View → Output → Enri-Media Sound Alert)
+    outputChannel = vscode.window.createOutputChannel('Enri-Media Sound Alert');
+    context.subscriptions.push(outputChannel);
+    outputChannel.appendLine('Extension activated ✅');
     // ── Status Bar ─────────────────────────────────────────────────────────
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1000);
     statusBarItem.command = 'errorSoundAlert.toggle';
@@ -94,27 +99,33 @@ function activate(context) {
     // ══════════════════════════════════════════════════════════════════════
     //  JUPYTER NOTEBOOK DETECTION — kernel cell execution errors
     // ══════════════════════════════════════════════════════════════════════
-    // ── Method C: Notebook cell execution result (VS Code 1.75+) ─────────
-    //    Fires when any notebook cell (Jupyter, Python, etc.) changes.
-    //    Detects TWO failure signals:
-    //      1. executionSummary.success === false  → kernel reported failure
-    //      2. Error mime type in cell outputs     → traceback/exception output
     context.subscriptions.push(vscode.workspace.onDidChangeNotebookDocument(event => {
         if (!isEnabled()) {
             return;
         }
+        outputChannel.appendLine(`Notebook change detected in: ${event.notebook.uri.fsPath}`);
         for (const cellChange of event.cellChanges) {
-            // Signal 1: execution summary reports failure
-            if (cellChange.executionSummary?.success === false) {
+            // Signal 1: execution summary explicitly reports failure
+            const summary = cellChange.executionSummary;
+            outputChannel.appendLine(`  executionSummary.success = ${summary?.success}`);
+            if (summary?.success === false) {
+                outputChannel.appendLine('  ▶ ERROR via executionSummary.success === false');
                 playSound();
                 return;
             }
-            // Signal 2: cell output contains an error item
-            if (cellChange.outputs !== undefined) {
-                const hasError = cellChange.cell.outputs.some(output => output.items.some(item => item.mime === 'application/vnd.code.notebook.error'));
-                if (hasError) {
-                    playSound();
-                    return;
+            // Signal 2: the CHANGED outputs (delta) contain an error mime type
+            //   Use cellChange.outputs (what changed), not cellChange.cell.outputs (full array)
+            const changedOutputs = cellChange.outputs;
+            if (changedOutputs && changedOutputs.length > 0) {
+                for (const output of changedOutputs) {
+                    for (const item of output.items) {
+                        outputChannel.appendLine(`  output item mime: ${item.mime}`);
+                        if (item.mime === 'application/vnd.code.notebook.error') {
+                            outputChannel.appendLine('  ▶ ERROR via notebook error mime type');
+                            playSound();
+                            return;
+                        }
+                    }
                 }
             }
         }
