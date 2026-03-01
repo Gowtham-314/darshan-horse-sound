@@ -49,7 +49,7 @@ The sound file is located at `media/sound.mp3`. Replace it with any MP3 of your 
 ```bash
 What is People are doing? 
 
-Enindu Media..
+Enidu Media..
 Enri Media......
 Reee Swamy....
 
