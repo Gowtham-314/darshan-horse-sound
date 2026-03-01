@@ -69,6 +69,42 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
+    // ══════════════════════════════════════════════════════════════════════
+    //  JUPYTER NOTEBOOK DETECTION — kernel cell execution errors
+    // ══════════════════════════════════════════════════════════════════════
+
+    // ── Method C: Notebook cell execution result (VS Code 1.75+) ─────────
+    //    Fires when any notebook cell (Jupyter, Python, etc.) changes.
+    //    Detects TWO failure signals:
+    //      1. executionSummary.success === false  → kernel reported failure
+    //      2. Error mime type in cell outputs     → traceback/exception output
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeNotebookDocument(event => {
+            if (!isEnabled()) { return; }
+
+            for (const cellChange of event.cellChanges) {
+                // Signal 1: execution summary reports failure
+                if (cellChange.executionSummary?.success === false) {
+                    playSound();
+                    return;
+                }
+
+                // Signal 2: cell output contains an error item
+                if (cellChange.outputs !== undefined) {
+                    const hasError = cellChange.cell.outputs.some(output =>
+                        output.items.some(item =>
+                            item.mime === 'application/vnd.code.notebook.error'
+                        )
+                    );
+                    if (hasError) {
+                        playSound();
+                        return;
+                    }
+                }
+            }
+        })
+    );
+
     vscode.window.showInformationMessage(
         '🔊 Enri-Media Sound Alert active — plays sound when your code crashes!'
     );
