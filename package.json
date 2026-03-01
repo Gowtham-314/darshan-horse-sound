@@ -1,7 +1,7 @@
 {
-  "name": "darshan-horse-sound",
-  "displayName": "Error Sound Alert",
-  "description": "Plays a sound when errors occur in VS Code — editor diagnostics, terminal, or PowerShell",
+  "name": "enri-media-sound-alert",
+  "displayName": "Enri-Media Sound Alert",
+  "description": "Enri-Media: Plays a custom sound when errors occur in VS Code — editor diagnostics, terminal, or PowerShell",
   "version": "1.0.0",
   "publisher": "GowthamGowdaCB",
   "icon": "media/icon.png",
