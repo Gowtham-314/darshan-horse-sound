@@ -3,7 +3,7 @@
   "displayName": "Enri-Media Sound Alert",
   "description": "Enri-Media: Plays a sound when your code crashes — detects terminal run errors via exit codes. Supports Python, Node.js, Java, C, C++ and more.",
   "version": "1.0.3",
-  "publisher": "Enri-Media",
+  "publisher": "GowthamGowdaCB",
   "icon": "media/icon.png",
   "repository": {
     "type": "git",
