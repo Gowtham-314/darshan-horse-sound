@@ -7,7 +7,7 @@
   "icon": "media/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GowthamGowdaCB/darshan-horse-sound"
+    "url": "https://github.com/Gowtham-314/darshan-horse-sound"
   },
   "engines": {
     "vscode": "^1.75.0"
