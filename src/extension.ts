@@ -155,20 +155,51 @@ function playSound(force = false) {
     if (!force && now - lastSoundTime < delay) { return; }
     lastSoundTime = now;
 
-    const fp = soundFilePath.replace(/\\/g, '/');
+    // ── Visual flash on status bar so user knows detection fired ──────────
+    const original = statusBarItem.text;
+    const originalBg = statusBarItem.backgroundColor;
+    statusBarItem.text = '$(bell-dot) ERROR!';
+    statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
+    setTimeout(() => {
+        statusBarItem.text = original;
+        statusBarItem.backgroundColor = originalBg;
+    }, 2500);
+
+    // ── Audio Playback ────────────────────────────────────────────────────
+    const winPath = soundFilePath.replace(/\//g, '\\');
+    const unixPath = soundFilePath.replace(/\\/g, '/');
 
     try {
         if (process.platform === 'win32') {
-            // Silent PowerShell — no window, no popup
-            const ps =
-                `Add-Type -AssemblyName PresentationCore; ` +
-                `$m = [System.Windows.Media.MediaPlayer]::new(); ` +
-                `$m.Open([System.Uri]::new('${fp}')); ` +
-                `$m.Play(); ` +
-                `Start-Sleep -Milliseconds 5000`;
+            // Method 1: WMPlayer COM object — most reliable for MP3 on Windows
+            // Works from any process without needing a WPF Dispatcher
+            const ps1 =
+                `$wmp = New-Object -ComObject 'WMPlayer.OCX.7'; ` +
+                `$wmp.settings.volume = 100; ` +
+                `$wmp.URL = '${winPath}'; ` +
+                `$wmp.controls.play(); ` +
+                `Start-Sleep -Seconds 5; ` +
+                `$wmp.controls.stop()`;
+
             cp.exec(
-                `powershell -NoProfile -NonInteractive -WindowStyle Hidden -Command "${ps}"`,
-                { windowsHide: true }
+                `powershell -NoProfile -NonInteractive -WindowStyle Hidden -Command "${ps1}"`,
+                { windowsHide: true },
+                (err) => {
+                    if (err) {
+                        // Method 2 fallback: MediaPlayer with Dispatcher pump
+                        const ps2 =
+                            `Add-Type -AssemblyName PresentationCore; ` +
+                            `$d = [System.Windows.Threading.Dispatcher]::CurrentDispatcher; ` +
+                            `$m = New-Object System.Windows.Media.MediaPlayer; ` +
+                            `$m.Open([uri]'file:///${unixPath}'); ` +
+                            `$m.Play(); ` +
+                            `Start-Sleep -Seconds 5`;
+                        cp.exec(
+                            `powershell -NoProfile -WindowStyle Hidden -Command "${ps2}"`,
+                            { windowsHide: true }
+                        );
+                    }
+                }
             );
         } else if (process.platform === 'darwin') {
             cp.exec(`afplay "${soundFilePath}"`);
@@ -178,7 +209,7 @@ function playSound(force = false) {
             );
         }
     } catch (err) {
-        console.error('[Enri-Media Sound Alert] Failed to play sound:', err);
+        console.error('[Enri-Media Sound Alert] Playback error:', err);
     }
 }
 
